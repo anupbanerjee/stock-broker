@@ -11,13 +11,13 @@
 		<route id="StockBroker-Buyer">
 			<from uri="quartz2://stockBrokerBuyer?cron=0/2+*+*+*+*+?" />
 			<bean method="buyStock" ref="buyer" />
-			<to uri="jms:stocks.sell" />
+			<to uri="jms:stocks.buy" />
 		</route>
 
 		<route id="StockBroker-Seller">
 			<from uri="quartz2://stockBrokerSeller?cron=0/2+*+*+*+*+?" />
 			<bean method="sellStock" ref="seller" />
-			<to uri="jms:stocks.buy" />
+			<to uri="jms:stocks.sell" />
 		</route>
 
 
