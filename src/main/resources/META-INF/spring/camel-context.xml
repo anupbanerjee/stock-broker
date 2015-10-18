@@ -1,21 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
          http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
          http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
 
-  <camelContext id="camel" xmlns="http://camel.apache.org/schema/spring">
-    <package>org.apache.camel.example.spring</package>
-  </camelContext>
+	<camelContext id="camel" xmlns="http://camel.apache.org/schema/spring">
+		<package>org.anup.stock.broker</package>
 
-  <!-- lets configure the default ActiveMQ broker URL -->
-  <bean id="jms" class="org.apache.camel.component.jms.JmsComponent">
-    <property name="connectionFactory">
-      <bean class="org.apache.activemq.ActiveMQConnectionFactory">
-        <property name="brokerURL" value="vm://localhost?broker.persistent=false&amp;broker.useJmx=true"/>
-      </bean>
-    </property>
-  </bean>
+		<route id="StockBroker-Buyer">
+			<from uri="quartz2://stockBrokerBuyer?cron=0/2+*+*+*+*+?" />
+			<bean method="buyStock" ref="buyer" />
+			<to uri="jms:stocks.sell" />
+		</route>
 
+		<route id="StockBroker-Seller">
+			<from uri="quartz2://stockBrokerSeller?cron=0/2+*+*+*+*+?" />
+			<bean method="sellStock" ref="seller" />
+			<to uri="jms:stocks.buy" />
+		</route>
+
+
+	</camelContext>
+
+	<!-- lets configure the default ActiveMQ broker URL -->
+	<bean id="jms" class="org.apache.camel.component.jms.JmsComponent">
+		<property name="connectionFactory">
+			<bean id="jmsConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+				<property name="brokerURL" value="tcp://MW7RNVSOWELPKC:61616" />
+				<property name="userName" value="admin" />
+				<property name="password" value="admin" />
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="startup" class="org.anup.stock.broker.BrokerStartup"
+		init-method="init" />
+
+	<bean id="seller" class="org.anup.stock.broker.Seller" />
+	<bean id="buyer" class="org.anup.stock.broker.Buyer" />
 </beans>
